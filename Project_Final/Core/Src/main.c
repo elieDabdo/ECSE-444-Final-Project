@@ -41,6 +41,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+DAC_HandleTypeDef hdac1;
+
 I2C_HandleTypeDef hi2c2;
 
 UART_HandleTypeDef huart1;
@@ -57,9 +59,11 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_DAC1_Init(void);
 void StartButtonTask(void const * argument);
 void StartTerminalTask(void const * argument);
 void StartSensorTask(void const * argument);
+void beep(int duration_ms);
 
 /* USER CODE BEGIN PFP */
 
@@ -72,6 +76,9 @@ void StartSensorTask(void const * argument);
 #else
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
 #endif
+
+#define SPEAKER_Pin GPIO_PIN_5
+#define SPEAKER_GPIO_Port GPIOA
 
 PUTCHAR_PROTOTYPE
 {
@@ -106,7 +113,6 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -129,6 +135,7 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C2_Init();
   MX_USART1_UART_Init();
+  MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
   BSP_ACCELERO_Init();
   BSP_GYRO_Init();
@@ -236,6 +243,57 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief DAC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_DAC1_Init(void)
+{
+
+  /* USER CODE BEGIN DAC1_Init 0 */
+
+  /* USER CODE END DAC1_Init 0 */
+
+  DAC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN DAC1_Init 1 */
+
+  /* USER CODE END DAC1_Init 1 */
+
+  /** DAC Initialization
+  */
+  hdac1.Instance = DAC1;
+  if (HAL_DAC_Init(&hdac1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** DAC channel OUT1 config
+  */
+  sConfig.DAC_SampleAndHold = DAC_SAMPLEANDHOLD_DISABLE;
+  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
+  sConfig.DAC_HighFrequency = DAC_HIGH_FREQUENCY_INTERFACE_MODE_ABOVE_80MHZ;
+  sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
+  sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_DISABLE;
+  sConfig.DAC_UserTrimming = DAC_TRIMMING_FACTORY;
+  if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** DAC channel OUT2 config
+  */
+  if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN DAC1_Init 2 */
+
+  /* USER CODE END DAC1_Init 2 */
+
 }
 
 /**
@@ -347,6 +405,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -434,7 +493,7 @@ void StartTerminalTask(void const * argument)
   for(;;)
   {
     osDelay(1000);
-    printAcceleration(&xyz_accel);
+    printAcceleration(xyz_accel);
     printf("____________________________________________________________________________\n\r");
     for (int i=0; i<=6; i++){
     	if (i == car_position){
@@ -465,15 +524,40 @@ void StartSensorTask(void const * argument)
   for(;;)
   {
     osDelay(100);
-    BSP_ACCELERO_AccGetXYZ(&xyz_accel);
-    if (xyz_accel[1] >= 1.0f){
-    	car_position = car_position + 1;
-    } else if (xyz_accel[1] <= -1.0f){
-    	car_position = car_position - 1;
+    BSP_ACCELERO_AccGetXYZ(xyz_accel);
+    if (xyz_accel[1] >= 5.0f){
+    	car_position++;
+    } else if (xyz_accel[1] <= -5.0f){
+    	car_position--;
     }
+
+    // Bounds checking for the car position
+    if (car_position < 0) {
+        car_position = 0;
+        printf("Car is out of bounds at the top!\n\r");
+        beep(500);  // Beep for 500 ms
+     } else if (car_position > 6) {
+        car_position = 6;
+        printf("Car is out of bounds at the bottom!\n\r");
+        beep(500);  // Beep for 500 ms
+     }
   }
   /* USER CODE END StartSensorTask */
 }
+
+void beep(int duration_ms) {
+    HAL_DAC_Start(&hdac1, DAC_CHANNEL_1); // Start DAC output
+
+    for (int i = 0; i < duration_ms; i++) {
+        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 4095); // Max value
+        HAL_Delay(1); // 1ms high
+        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0); // Min value
+        HAL_Delay(1); // 1ms low
+    }
+
+    HAL_DAC_Stop(&hdac1, DAC_CHANNEL_1); // Stop DAC output
+}
+
 
 /**
   * @brief  Period elapsed callback in non blocking mode
