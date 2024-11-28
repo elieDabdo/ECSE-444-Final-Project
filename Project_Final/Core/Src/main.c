@@ -23,11 +23,13 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "arm_math.h"
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define ARM_MATH_CM4
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -67,6 +69,11 @@ void StartSensorTask(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+#define RAD_TO_DEG 57.2957795
+#define ROWS 7
+#define COLS 76
+
 #ifdef __GNUC__
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 #else
@@ -93,7 +100,20 @@ int16_t pressure = 0;
 // magnometer
 int16_t xyz_mag[] = {0,0,0};
 
-int car_position = 3;
+
+int car_position = 3; //row
+int car_column = 0;
+osMutexId accelDataMutex;
+float roll = 0.0f;
+
+static uint32_t seed = 1;
+char board[ROWS][COLS];
+
+int obstacleGenerationFrequency = 10;
+int terminalTaskCounter = 10;
+
+int movingCounter = 10;
+int gameOver = 0;
 
 /* USER CODE END 0 */
 
@@ -141,6 +161,12 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
+  osMutexDef(accelDataMutex);         // Define the mutex
+  accelDataMutex = osMutexCreate(osMutex(accelDataMutex)); // Create the mutex
+  if (accelDataMutex == NULL) {
+      printf("Failed to create accelDataMutex\n\r");
+      Error_Handler();
+  }
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
@@ -161,11 +187,11 @@ int main(void)
   ButtonTaskHandle = osThreadCreate(osThread(ButtonTask), NULL);
 
   /* definition and creation of TerminalTask */
-  osThreadDef(TerminalTask, StartTerminalTask, osPriorityNormal, 0, 128);
+  osThreadDef(TerminalTask, StartTerminalTask, osPriorityAboveNormal, 0, 200);
   TerminalTaskHandle = osThreadCreate(osThread(TerminalTask), NULL);
 
   /* definition and creation of SensorTask */
-  osThreadDef(SensorTask, StartSensorTask, osPriorityAboveNormal, 0, 128);
+  osThreadDef(SensorTask, StartSensorTask, osPriorityAboveNormal, 0, 200);
   SensorTaskHandle = osThreadCreate(osThread(SensorTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -382,6 +408,129 @@ void printMagnetometer(int16_t *magData) {
     printf("Magnetometer: X: %d, Y: %d, Z: %d\n\r", magData[0], magData[1], magData[2]);
 }
 
+void srand(uint32_t new_seed) {
+    seed = new_seed;
+}
+
+uint32_t rand(void) {
+    seed = (1103515245 * seed + 12345) % (1 << 31);
+    return seed;
+}
+
+uint32_t getRandomNumber0to6(void) {
+    uint32_t random_uint32 = rand();
+    // Scale to range 0-6
+    return random_uint32 % 7;
+}
+
+void generateObstacles(int level){
+	// Medium Level, 2 obstacles
+	if (level == 1) {
+		int firstRow = getRandomNumber0to6();
+		int secondRow = getRandomNumber0to6();
+		board[firstRow][COLS -1] = 'O';
+		board[secondRow][COLS -1] = 'O';
+	}
+}
+
+void initializeBoard() {
+    // Fill the board with empty spaces
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            board[i][j] = ' '; // Empty space
+        }
+    }
+}
+
+// Generates board from game data, return 1 if game over, 0 if nothing, 2 if win
+int generateBoard() {
+    // Clear previous positions
+	if (car_column >= COLS-4){
+			return 2;
+		}
+	for (int i = 0; i < ROWS; i++) {
+		for (int j = 0; j < COLS; j++) {
+
+			if (board[i][j] == 'O') {
+				// Move the '-' to the left if possible
+				board[i][j] = ' ';
+				if (j > 2) {
+					board[i][j - 3] = 'O';
+					// Game over
+					if (car_position == i && (car_column == (j - 3)|| car_column + 1 == (j-3) || car_column + 2 == (j-3) || car_column + 3 == (j-3))){
+						return 1;
+					}
+				}
+			} else {
+				// Clear any other characters
+				board[i][j] = ' ';
+			}
+	    }
+	 }
+    // Place the car on the specified row
+    strncpy(&board[car_position][car_column], "o/=\o", 4); // Put the car at column 0
+    return 0;
+}
+
+void displayBoard() {
+    // Top border
+    printf("+------------------------------------------------------------------------------+\n\r");
+    for (int i = 0; i < ROWS; i++) {
+        printf("|"); // Left border
+        for (int j = 0; j < COLS; j++) {
+            printf("%c", board[i][j]);
+        }
+        printf("|\n\r"); // Right border
+        if (i < ROWS - 1) {
+            // Horizontal row divider
+            printf("|------------------------------------------------------------------------------|\n\r");
+        }
+    }
+    // Bottom border
+    printf("+------------------------------------------------------------------------------+\n\r");
+    printf("\n\r");
+    printf("\n\r");
+    printf("\n\r");
+    printf("\n\r");
+	printf("\n\r");
+	printf("\n\r");
+}
+
+void printGameOver() {
+    printf("\n\r");
+    printf(" GGGGG  AAAAA  M     M  EEEEE    OOO  V   V EEEEE RRRR  \n\r");
+    printf("G       A   A  MM   MM  E       O   O V   V E     R   R \n\r");
+    printf("G  GG   AAAAA  M M M M  EEEE    O   O V   V EEEE  RRRR  \n\r");
+    printf("G   G   A   A  M  M  M  E       O   O V   V E     R  R  \n\r");
+    printf(" GGGG   A   A  M     M  EEEEE    OOO   VVV  EEEEE R   R \n\r");
+    printf("\n\r");
+    printf("\n\r");
+    printf("\n\r");
+    printf("\n\r");
+    printf("\n\r");
+    printf("\n\r");
+    printf("\n\r");
+    printf("\n\r");
+}
+
+void printWinner() {
+    printf("\n\r");
+    printf(" W   W  III  N   N  N   N  EEEEE  RRRR    \n\r");
+    printf(" W   W   I   NN  N  NN  N  E      R   R   \n\r");
+    printf(" W W W   I   N N N  N N N  EEEE   RRRR    \n\r");
+    printf(" WW WW   I   N  NN  N  NN  E      R  R    \n\r");
+    printf(" W   W  III  N   N  N   N  EEEEE  R   R   \n\r");
+    printf("\n\r");
+    printf("\n\r");
+	printf("\n\r");
+	printf("\n\r");
+	printf("\n\r");
+	printf("\n\r");
+	printf("\n\r");
+	printf("\n\r");
+}
+
+
 
 /* USER CODE END 4 */
 
@@ -433,20 +582,63 @@ void StartTerminalTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1000);
-    printAcceleration(&xyz_accel);
-    printf("____________________________________________________________________________\n\r");
-    for (int i=0; i<=6; i++){
-    	if (i == car_position){
-    		printf("***************\n\r");
-    	} else {
-    		printf("\n\r");
-    	}
+    osDelay(300);
+
+    if (terminalTaskCounter == obstacleGenerationFrequency){
+        	generateObstacles(1);
+        }
+
+    if (terminalTaskCounter== movingCounter){
+    	car_column = car_column + 5;
+    }
+    if (terminalTaskCounter == 0) {
+    	terminalTaskCounter = obstacleGenerationFrequency;
+    } else {
+    	terminalTaskCounter = terminalTaskCounter - 1;
+    }
+
+
+    osMutexWait(accelDataMutex, osWaitForever);
+    if (roll > 20.0f && car_position <6){
+		car_position = car_position + 1;
+	}
+	if (roll < -20.0f && car_position >0){
+		car_position = car_position - 1;
+	}
+    osMutexRelease(accelDataMutex);
+
+    //printf("%d\n\r", getRandomNumber0to6());
+
+//    printf("____________________________________________________________________________\n\r");
+//    for (int i=0; i<=6; i++){
+//    	if (i == car_position){
+//    		printf("o/=\o\n\r");
+//    	} else {
+//    		printf("\n\r");
+//    	}
+//
+//    }
+//    printf("____________________________________________________________________________\n\r");
+//    printf("\n\r");
+//    printf("\n\r");
+    int gameStatus = generateBoard();
+    if (gameStatus==1){
+    	printGameOver();
+    	vTaskSuspend(TerminalTaskHandle); // Suspend the current task (NULL means current task)
+    }
+    if (gameStatus ==2){
+    	printWinner();
+    	vTaskSuspend(TerminalTaskHandle); // Suspend the current task (NULL means current task)
 
     }
-    printf("____________________________________________________________________________\n\r");
-    printf("\n\r");
-    printf("\n\r");
+    displayBoard();
+//    if (status) {
+//    	displayBoard(); }
+//    } else {
+//    	printGameOver();
+//    	vTaskSuspend(NULL); // Suspend the current task (NULL means current task)
+//    }
+
   }
   /* USER CODE END StartTerminalTask */
 }
@@ -464,13 +656,21 @@ void StartSensorTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(100);
+    osDelay(10);
+
     BSP_ACCELERO_AccGetXYZ(&xyz_accel);
-    if (xyz_accel[1] >= 1.0f){
-    	car_position = car_position + 1;
-    } else if (xyz_accel[1] <= -1.0f){
-    	car_position = car_position - 1;
-    }
+    int16_t ax = xyz_accel[0];
+    int16_t ay = xyz_accel[1];
+    int16_t az = xyz_accel[2];
+
+    float32_t square = 0.0f;
+
+	osMutexWait(accelDataMutex, osWaitForever);
+	if (ax != 0 || ay != 0 || az != 0) {
+		arm_sqrt_f32((float32_t)((ax * ax + az * az) * 57), &square);
+		roll = atan2((double)ay, (double)square) * 57;
+	}
+    osMutexRelease(accelDataMutex);
   }
   /* USER CODE END StartSensorTask */
 }
@@ -504,6 +704,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
+	printf("Error happened");
   __disable_irq();
   while (1)
   {
