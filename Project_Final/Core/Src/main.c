@@ -609,7 +609,7 @@ void StartButtonTask(void const * argument)
     button_status = HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin);
     if (button_status ==0) {
 		if (button_status ==0){
-	    	difficultyLevel = arrow_position;
+	    	difficultyLevel = arrow_position; //sets the difficulty level depending on the user choice
 			vTaskResume(TerminalTaskHandle); // resumes the game task
 			vTaskSuspend(ButtonTaskHandle); // Suspend the menu task (NULL means current task)
 		}
