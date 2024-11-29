@@ -100,6 +100,8 @@ int16_t pressure = 0;
 // magnometer
 int16_t xyz_mag[] = {0,0,0};
 
+int arrow_position = 1;
+int difficultyLevel = 1;
 
 int car_position = 3; //row
 int car_column = 0;
@@ -431,6 +433,15 @@ void generateObstacles(int level){
 		board[firstRow][COLS -1] = 'O';
 		board[secondRow][COLS -1] = 'O';
 	}
+	if (level == 2) {
+			int firstRow = getRandomNumber0to6();
+			int secondRow = getRandomNumber0to6();
+			int thirdRow = getRandomNumber0to6();
+			board[firstRow][COLS -1] = 'O';
+			board[secondRow][COLS -1] = 'O';
+			board[thirdRow][COLS -1] = 'O';
+
+		}
 }
 
 void initializeBoard() {
@@ -530,6 +541,41 @@ void printWinner() {
 	printf("\n\r");
 }
 
+void displayMenu(){
+	if (arrow_position == 1){
+		printf("SELECT A DIFFICULTY:");
+		printf("\n\r");
+		printf("MEDIUM   <-- \n\r");
+		printf("\n\r");
+		printf("HARD \n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+	}
+	else if(arrow_position == 2){
+		printf("SELECT A DIFFICULTY:");
+		printf("\n\r");
+		printf("MEDIUM \n\r");
+		printf("\n\r");
+		printf("HARD     <-- \n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+		printf("\n\r");
+	}
+}
+
 
 
 /* USER CODE END 4 */
@@ -548,23 +594,28 @@ void StartButtonTask(void const * argument)
   for(;;)
   {
     osDelay(100);
+
+    //update position of the menu arrow
+    osMutexWait(accelDataMutex, osWaitForever);
+	if (roll > 20.0f && arrow_position <2){
+		arrow_position++;
+	}
+	if (roll < -20.0f && arrow_position >1){
+		arrow_position--;;
+	}
+	osMutexRelease(accelDataMutex);
+
+	//suspends the start menu task if the button is pressed to let the game begin
     button_status = HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin);
     if (button_status ==0) {
 		if (button_status ==0){
-			if (sensor_number ==0){
-				sensor_number = 1;
-			}
-			else if ( sensor_number ==1 ){
-				sensor_number =2;
-			}
-			else if (sensor_number == 2) {
-				sensor_number = 3;
-			} else {
-				sensor_number =0;
-			}
-
+	    	difficultyLevel = arrow_position;
+			vTaskResume(TerminalTaskHandle); // resumes the game task
+			vTaskSuspend(ButtonTaskHandle); // Suspend the menu task (NULL means current task)
 		}
     }
+
+    displayMenu();
   }
   /* USER CODE END 5 */
 }
@@ -579,13 +630,14 @@ void StartButtonTask(void const * argument)
 void StartTerminalTask(void const * argument)
 {
   /* USER CODE BEGIN StartTerminalTask */
+	vTaskSuspend(TerminalTaskHandle); // Suspends the game task until it is resumed by the menu task
   /* Infinite loop */
   for(;;)
   {
     osDelay(300);
 
     if (terminalTaskCounter == obstacleGenerationFrequency){
-        	generateObstacles(1);
+        	generateObstacles(difficultyLevel);
         }
 
     if (terminalTaskCounter== movingCounter){
@@ -596,7 +648,6 @@ void StartTerminalTask(void const * argument)
     } else {
     	terminalTaskCounter = terminalTaskCounter - 1;
     }
-
 
     osMutexWait(accelDataMutex, osWaitForever);
     if (roll > 20.0f && car_position <6){
@@ -624,12 +675,15 @@ void StartTerminalTask(void const * argument)
     int gameStatus = generateBoard();
     if (gameStatus==1){
     	printGameOver();
-    	vTaskSuspend(TerminalTaskHandle); // Suspend the current task (NULL means current task)
+    	vTaskDelay(pdMS_TO_TICKS(1000)); //tasks wait for 1 second before going back to menu
+    	vTaskResume(ButtonTaskHandle); // resumes the menu task
+		vTaskSuspend(TerminalTaskHandle); // Suspend the game task (NULL means current task)
     }
     if (gameStatus ==2){
     	printWinner();
-    	vTaskSuspend(TerminalTaskHandle); // Suspend the current task (NULL means current task)
-
+    	vTaskDelay(pdMS_TO_TICKS(1000)); //tasks wait for 1 second before going back to menu
+    	vTaskResume(ButtonTaskHandle); // resumes the menu task
+		vTaskSuspend(TerminalTaskHandle); // Suspend the game task (NULL means current task)
     }
     displayBoard();
 //    if (status) {
