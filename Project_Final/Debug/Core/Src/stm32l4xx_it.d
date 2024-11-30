@@ -31,17 +31,17 @@ Core/Src/stm32l4xx_it.o: ../Core/Src/stm32l4xx_it.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h \
  ../Core/Inc/stm32l4s5i_iot01_accelero.h ../Core/Inc/stm32l4s5i_iot01.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/lsm6dsl.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/accelero.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/gyro.h \
+ C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lsm6dsl/lsm6dsl.h \
+ C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/accelero.h \
+ C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/gyro.h \
  ../Core/Inc/stm32l4s5i_iot01_gyro.h \
  ../Core/Inc/stm32l4s5i_iot01_magneto.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lis3mdl/lis3mdl.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lis3mdl/../Common/magneto.h \
+ C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lis3mdl/lis3mdl.h \
+ C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lis3mdl/../Common/magneto.h \
  ../Core/Inc/stm32l4s5i_iot01_psensor.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/lps22hb.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/../Common/psensor.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/../Common/tsensor.h \
+ C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lps22hb/lps22hb.h \
+ C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lps22hb/../Common/psensor.h \
+ C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lps22hb/../Common/tsensor.h \
  ../Core/Inc/stm32l4xx_it.h
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
@@ -77,15 +77,15 @@ Core/Src/stm32l4xx_it.o: ../Core/Src/stm32l4xx_it.c ../Core/Inc/main.h \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h:
 ../Core/Inc/stm32l4s5i_iot01_accelero.h:
 ../Core/Inc/stm32l4s5i_iot01.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/lsm6dsl.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/accelero.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/gyro.h:
+C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lsm6dsl/lsm6dsl.h:
+C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/accelero.h:
+C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/gyro.h:
 ../Core/Inc/stm32l4s5i_iot01_gyro.h:
 ../Core/Inc/stm32l4s5i_iot01_magneto.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lis3mdl/lis3mdl.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lis3mdl/../Common/magneto.h:
+C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lis3mdl/lis3mdl.h:
+C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lis3mdl/../Common/magneto.h:
 ../Core/Inc/stm32l4s5i_iot01_psensor.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/lps22hb.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/../Common/psensor.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/../Common/tsensor.h:
+C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lps22hb/lps22hb.h:
+C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lps22hb/../Common/psensor.h:
+C:/Users/phili/git/ECSE-444-Final-Project/Project_Final/Drivers/Components/../Components/lps22hb/../Common/tsensor.h:
 ../Core/Inc/stm32l4xx_it.h:

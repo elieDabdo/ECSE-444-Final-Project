@@ -114,6 +114,7 @@ char board[ROWS][COLS];
 int obstacleGenerationFrequency = 10;
 int terminalTaskCounter = 10;
 
+int gameStatus = 0;
 int movingCounter = 10;
 int gameOver = 0;
 
@@ -543,6 +544,13 @@ void printWinner() {
 
 void displayMenu(){
 	if (arrow_position == 1){
+		printf("\n\r");
+		printf(" GGG    A   M   M  EEEEE      M   M  EEEEE  N   N  U   U  \n\r");
+		printf("G      A A  MM MM  E          MM MM  E      NN  N  U   U  \n\r");
+		printf("G  GG AAAAA M M M  EEEE       M M M  EEEE   N N N  U   U  \n\r");
+		printf("G   G A   A M   M  E          M   M  E      N  NN  U   U  \n\r");
+		printf(" GGG  A   A M   M  EEEEE      M   M  EEEEE  N   N  UUUUU  \n\r");
+		printf("\n\r");
 		printf("SELECT A DIFFICULTY:");
 		printf("\n\r");
 		printf("MEDIUM   <-- \n\r");
@@ -550,27 +558,20 @@ void displayMenu(){
 		printf("HARD \n\r");
 		printf("\n\r");
 		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
 	}
 	else if(arrow_position == 2){
+		printf("\n\r");
+		printf(" GGG    A   M   M  EEEEE      M   M  EEEEE  N   N  U   U  \n\r");
+		printf("G      A A  MM MM  E          MM MM  E      NN  N  U   U  \n\r");
+		printf("G  GG AAAAA M M M  EEEE       M M M  EEEE   N N N  U   U  \n\r");
+		printf("G   G A   A M   M  E          M   M  E      N  NN  U   U  \n\r");
+		printf(" GGG  A   A M   M  EEEEE      M   M  EEEEE  N   N  UUUUU  \n\r");
+		printf("\n\r");
 		printf("SELECT A DIFFICULTY:");
 		printf("\n\r");
 		printf("MEDIUM \n\r");
 		printf("\n\r");
 		printf("HARD     <-- \n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
-		printf("\n\r");
 		printf("\n\r");
 		printf("\n\r");
 	}
@@ -610,7 +611,13 @@ void StartButtonTask(void const * argument)
     if (button_status ==0) {
 		if (button_status ==0){
 	    	difficultyLevel = arrow_position; //sets the difficulty level depending on the user choice
-			vTaskResume(TerminalTaskHandle); // resumes the game task
+	    	car_position = 3; //row
+	    	car_column = 0;
+	    	gameStatus = 0;
+	    	initializeBoard();
+	    	//generateBoard();
+	    	//displayBoard();
+	    	vTaskResume(TerminalTaskHandle); // resumes the game task
 			vTaskSuspend(ButtonTaskHandle); // Suspend the menu task (NULL means current task)
 		}
     }
@@ -672,16 +679,16 @@ void StartTerminalTask(void const * argument)
 //    printf("____________________________________________________________________________\n\r");
 //    printf("\n\r");
 //    printf("\n\r");
-    int gameStatus = generateBoard();
+    gameStatus = generateBoard();
     if (gameStatus==1){
     	printGameOver();
-    	vTaskDelay(pdMS_TO_TICKS(1000)); //tasks wait for 1 second before going back to menu
+    	vTaskDelay(pdMS_TO_TICKS(3000)); //tasks wait for 3 seconds before going back to menu
     	vTaskResume(ButtonTaskHandle); // resumes the menu task
 		vTaskSuspend(TerminalTaskHandle); // Suspend the game task (NULL means current task)
     }
     if (gameStatus ==2){
     	printWinner();
-    	vTaskDelay(pdMS_TO_TICKS(1000)); //tasks wait for 1 second before going back to menu
+    	vTaskDelay(pdMS_TO_TICKS(3000)); //tasks wait for 3 seconds before going back to menu
     	vTaskResume(ButtonTaskHandle); // resumes the menu task
 		vTaskSuspend(TerminalTaskHandle); // Suspend the game task (NULL means current task)
     }
