@@ -100,8 +100,8 @@ int16_t pressure = 0;
 // magnometer
 int16_t xyz_mag[] = {0,0,0};
 
-int arrow_position = 1;
-int difficultyLevel = 1;
+int arrow_position = 0;
+int difficultyLevel = 0;
 
 int car_position = 3; //row
 int car_column = 0;
@@ -428,19 +428,23 @@ uint32_t getRandomNumber0to6(void) {
 
 void generateObstacles(int level){
 	// Medium Level, 2 obstacles
-	if (level == 1) {
+	if (level == 0) {
+		int firstRow = getRandomNumber0to6();
+		board[firstRow][COLS -1] = 'O';
+	}
+		if (level == 1) {
 		int firstRow = getRandomNumber0to6();
 		int secondRow = getRandomNumber0to6();
 		board[firstRow][COLS -1] = 'O';
 		board[secondRow][COLS -1] = 'O';
 	}
 	if (level == 2) {
-			int firstRow = getRandomNumber0to6();
-			int secondRow = getRandomNumber0to6();
-			int thirdRow = getRandomNumber0to6();
-			board[firstRow][COLS -1] = 'O';
-			board[secondRow][COLS -1] = 'O';
-			board[thirdRow][COLS -1] = 'O';
+		int firstRow = getRandomNumber0to6();
+		int secondRow = getRandomNumber0to6();
+		int thirdRow = getRandomNumber0to6();
+		board[firstRow][COLS -1] = 'O';
+		board[secondRow][COLS -1] = 'O';
+		board[thirdRow][COLS -1] = 'O';
 
 		}
 }
@@ -543,7 +547,7 @@ void printWinner() {
 }
 
 void displayMenu(){
-	if (arrow_position == 1){
+	if (arrow_position == 0){
 		printf("\n\r");
 		printf(" GGG    A   M   M  EEEEE      M   M  EEEEE  N   N  U   U  \n\r");
 		printf("G      A A  MM MM  E          MM MM  E      NN  N  U   U  \n\r");
@@ -553,11 +557,27 @@ void displayMenu(){
 		printf("\n\r");
 		printf("SELECT A DIFFICULTY:");
 		printf("\n\r");
+		printf("EASY     <-- \n\r");
+		printf("\n\r");
+		printf("MEDIUM \n\r");
+		printf("\n\r");
+		printf("HARD \n\r");
+		}
+	else if (arrow_position == 1){
+		printf("\n\r");
+		printf(" GGG    A   M   M  EEEEE      M   M  EEEEE  N   N  U   U  \n\r");
+		printf("G      A A  MM MM  E          MM MM  E      NN  N  U   U  \n\r");
+		printf("G  GG AAAAA M M M  EEEE       M M M  EEEE   N N N  U   U  \n\r");
+		printf("G   G A   A M   M  E          M   M  E      N  NN  U   U  \n\r");
+		printf(" GGG  A   A M   M  EEEEE      M   M  EEEEE  N   N  UUUUU  \n\r");
+		printf("\n\r");
+		printf("SELECT A DIFFICULTY:");
+		printf("\n\r");
+		printf("EASY \n\r");
+		printf("\n\r");
 		printf("MEDIUM   <-- \n\r");
 		printf("\n\r");
 		printf("HARD \n\r");
-		printf("\n\r");
-		printf("\n\r");
 	}
 	else if(arrow_position == 2){
 		printf("\n\r");
@@ -569,11 +589,11 @@ void displayMenu(){
 		printf("\n\r");
 		printf("SELECT A DIFFICULTY:");
 		printf("\n\r");
+		printf("EASY \n\r");
+		printf("\n\r");
 		printf("MEDIUM \n\r");
 		printf("\n\r");
 		printf("HARD     <-- \n\r");
-		printf("\n\r");
-		printf("\n\r");
 	}
 }
 
@@ -601,7 +621,7 @@ void StartButtonTask(void const * argument)
 	if (roll > 20.0f && arrow_position <2){
 		arrow_position++;
 	}
-	if (roll < -20.0f && arrow_position >1){
+	if (roll < -20.0f && arrow_position >0){
 		arrow_position--;;
 	}
 	osMutexRelease(accelDataMutex);
