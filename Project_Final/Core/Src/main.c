@@ -67,7 +67,8 @@ void StartTerminalTask(void const * argument);
 void StartSensorTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
-void playBeep();
+void beep(int duration);
+void playOutOfBoundsBeep();
 void playGameOverSound();
 void playLevelCompleteSound();
 /* USER CODE END PFP */
@@ -104,6 +105,8 @@ int16_t pressure = 0;
 
 // magnometer
 int16_t xyz_mag[] = {0,0,0};
+
+int16_t duration;
 
 int arrow_position = 0;
 int difficultyLevel = 0;
@@ -664,27 +667,35 @@ void displayMenu()
     }
 }
 
-void playBeep() {
-	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-	HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 4095); // Max value
-	HAL_Delay(10);
-	HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0); // Min value
-	HAL_Delay(10);
-	HAL_DAC_Stop(&hdac1, DAC_CHANNEL_1);
+void beep(int duration_ms) {
+    HAL_DAC_Start(&hdac1, DAC_CHANNEL_1); // Start DAC output
+    for (int i = 0; i < duration_ms; i++) {
+        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 4095); // Max value
+        HAL_Delay(1); // 1ms high
+        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0); // Min value
+        HAL_Delay(1); // 1ms low
+    }
+    HAL_DAC_Stop(&hdac1, DAC_CHANNEL_1); // Stop DAC output
+}
+
+void playOutOfBoundsBeep() {
+    beep(100); // Simple short beep
 }
 
 void playGameOverSound() {
-  for (int i = 0; i < 3; i++) {
-    playBeep();
-    HAL_Delay(100);
-  }
+    uint16_t durations[] = {70, 20, 20, 70, 70, 20, 200};
+    for (int i = 0; i < 5; i++) {
+        beep(durations[i]);
+        HAL_Delay(100);
+    }
 }
 
 void playLevelCompleteSound() {
-  for (int i = 0; i < 5; i++) {
-    playBeep();
-    HAL_Delay(100);
-  }
+    uint16_t durations[] = {200, 20, 100, 200, 300};
+    for (int i = 0; i < 5; i++) {
+        beep(durations[i]);
+        HAL_Delay(50);
+    }
 }
 
 /* USER CODE END 4 */
@@ -757,7 +768,7 @@ void StartTerminalTask(void const * argument)
     osDelay(300);
 
     if (car_position < 0 || car_position >= ROWS) {
-        playBeep(); // Out of bounds beep
+    	playOutOfBoundsBeep(); // Out of bounds beep
     }
 
     if (terminalTaskCounter == obstacleGenerationFrequency) {
@@ -779,6 +790,9 @@ void StartTerminalTask(void const * argument)
 	}
 	if (roll < -20.0f && car_position >0){
 		car_position = car_position - 1;
+	}
+	if ((roll < -20.0f && car_position == 0) || (roll > 20.0f && car_position == 6)) {
+		beep(100);
 	}
     osMutexRelease(accelDataMutex);
 
