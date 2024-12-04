@@ -566,6 +566,8 @@ int generateBoard() {
 }
 
 void displayBoard() {
+	printf("\033[2J"); // Clear the terminal screen (ANSI escape code)
+	printf("\033[H");  // Move the cursor to the top-left corner (ANSI escape code)
     // Top border
     printf("+------------------------------------------------------------------------------+\n\r");
     for (int i = 0; i < ROWS; i++) {
@@ -581,12 +583,12 @@ void displayBoard() {
     }
     // Bottom border
     printf("+------------------------------------------------------------------------------+\n\r");
-    printf("\n\r");
-    printf("\n\r");
-    printf("\n\r");
-    printf("\n\r");
-	printf("\n\r");
-	printf("\n\r");
+//    printf("\n\r");
+//    printf("\n\r");
+//    printf("\n\r");
+//    printf("\n\r");
+//	printf("\n\r");
+//	printf("\n\r");
 }
 
 void printGameOver() {
@@ -627,6 +629,7 @@ void displayMenu()
 {
     printf("\033[2J"); // Clear the terminal screen (ANSI escape code)
     printf("\033[H");  // Move the cursor to the top-left corner (ANSI escape code)
+    HAL_Delay(100);
 
     if (arrow_position == 0) {
         printf("\n\r");
@@ -765,7 +768,7 @@ void StartTerminalTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(300);
+    osDelay(100);
 
     if (car_position < 0 || car_position >= ROWS) {
     	playOutOfBoundsBeep(); // Out of bounds beep
