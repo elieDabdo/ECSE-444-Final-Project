@@ -27,6 +27,8 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_cortex.h \
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac.h \
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_exti.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash_ex.h \
@@ -40,17 +42,17 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h \
  ../Core/Inc/stm32l4s5i_iot01_accelero.h ../Core/Inc/stm32l4s5i_iot01.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/lsm6dsl.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/accelero.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/gyro.h \
+ /Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lsm6dsl/lsm6dsl.h \
+ /Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/accelero.h \
+ /Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/gyro.h \
  ../Core/Inc/stm32l4s5i_iot01_gyro.h \
  ../Core/Inc/stm32l4s5i_iot01_magneto.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lis3mdl/lis3mdl.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lis3mdl/../Common/magneto.h \
+ /Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lis3mdl/lis3mdl.h \
+ /Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lis3mdl/../Common/magneto.h \
  ../Core/Inc/stm32l4s5i_iot01_psensor.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/lps22hb.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/../Common/psensor.h \
- C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/../Common/tsensor.h
+ /Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lps22hb/lps22hb.h \
+ /Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lps22hb/../Common/psensor.h \
+ /Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lps22hb/../Common/tsensor.h
 ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
@@ -80,6 +82,8 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma_ex.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_cortex.h:
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac.h:
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dac_ex.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_exti.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash_ex.h:
@@ -94,14 +98,14 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h:
 ../Core/Inc/stm32l4s5i_iot01_accelero.h:
 ../Core/Inc/stm32l4s5i_iot01.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/lsm6dsl.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/accelero.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/gyro.h:
+/Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lsm6dsl/lsm6dsl.h:
+/Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/accelero.h:
+/Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lsm6dsl/../Common/gyro.h:
 ../Core/Inc/stm32l4s5i_iot01_gyro.h:
 ../Core/Inc/stm32l4s5i_iot01_magneto.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lis3mdl/lis3mdl.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lis3mdl/../Common/magneto.h:
+/Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lis3mdl/lis3mdl.h:
+/Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lis3mdl/../Common/magneto.h:
 ../Core/Inc/stm32l4s5i_iot01_psensor.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/lps22hb.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/../Common/psensor.h:
-C:/Users/eliea/STM32CubeIDE/workspace_1.16.0/Project_Final/Drivers/Components/../Components/lps22hb/../Common/tsensor.h:
+/Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lps22hb/lps22hb.h:
+/Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lps22hb/../Common/psensor.h:
+/Users/alexcattani/Desktop/ECSE-444-Final-Project-menu/Project_Final/Drivers/Components/../Components/lps22hb/../Common/tsensor.h:

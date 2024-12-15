@@ -43,6 +43,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+DAC_HandleTypeDef hdac1;
+
 I2C_HandleTypeDef hi2c2;
 
 UART_HandleTypeDef huart1;
@@ -59,12 +61,16 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_DAC1_Init(void);
 void StartButtonTask(void const * argument);
 void StartTerminalTask(void const * argument);
 void StartSensorTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
-
+void beep(int duration);
+void playOutOfBoundsBeep();
+void playGameOverSound();
+void playLevelCompleteSound();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -100,6 +106,10 @@ int16_t pressure = 0;
 // magnometer
 int16_t xyz_mag[] = {0,0,0};
 
+int16_t duration;
+
+int arrow_position = 0;
+int difficultyLevel = 0;
 
 int car_position = 3; //row
 int car_column = 0;
@@ -112,6 +122,7 @@ char board[ROWS][COLS];
 int obstacleGenerationFrequency = 10;
 int terminalTaskCounter = 10;
 
+int gameStatus = 0;
 int movingCounter = 10;
 int gameOver = 0;
 
@@ -149,6 +160,7 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C2_Init();
   MX_USART1_UART_Init();
+  MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
   BSP_ACCELERO_Init();
   BSP_GYRO_Init();
@@ -265,6 +277,57 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief DAC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_DAC1_Init(void)
+{
+
+  /* USER CODE BEGIN DAC1_Init 0 */
+
+  /* USER CODE END DAC1_Init 0 */
+
+  DAC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN DAC1_Init 1 */
+
+  /* USER CODE END DAC1_Init 1 */
+
+  /** DAC Initialization
+  */
+  hdac1.Instance = DAC1;
+  if (HAL_DAC_Init(&hdac1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** DAC channel OUT1 config
+  */
+  sConfig.DAC_SampleAndHold = DAC_SAMPLEANDHOLD_DISABLE;
+  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
+  sConfig.DAC_HighFrequency = DAC_HIGH_FREQUENCY_INTERFACE_MODE_ABOVE_80MHZ;
+  sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
+  sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_DISABLE;
+  sConfig.DAC_UserTrimming = DAC_TRIMMING_FACTORY;
+  if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** DAC channel OUT2 config
+  */
+  if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN DAC1_Init 2 */
+
+  /* USER CODE END DAC1_Init 2 */
+
+}
+
+/**
   * @brief I2C2 Initialization Function
   * @param None
   * @retval None
@@ -373,6 +436,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -425,12 +489,25 @@ uint32_t getRandomNumber0to6(void) {
 
 void generateObstacles(int level){
 	// Medium Level, 2 obstacles
-	if (level == 1) {
+	if (level == 0) {
+		int firstRow = getRandomNumber0to6();
+		board[firstRow][COLS -1] = 'O';
+	}
+		if (level == 1) {
 		int firstRow = getRandomNumber0to6();
 		int secondRow = getRandomNumber0to6();
 		board[firstRow][COLS -1] = 'O';
 		board[secondRow][COLS -1] = 'O';
 	}
+	if (level == 2) {
+		int firstRow = getRandomNumber0to6();
+		int secondRow = getRandomNumber0to6();
+		int thirdRow = getRandomNumber0to6();
+		board[firstRow][COLS -1] = 'O';
+		board[secondRow][COLS -1] = 'O';
+		board[thirdRow][COLS -1] = 'O';
+
+		}
 }
 
 void initializeBoard() {
@@ -442,37 +519,55 @@ void initializeBoard() {
     }
 }
 
+void clearCarPosition() {
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            if (j <= COLS - 4) { // Only clear potential car positions
+                if (strncmp(&board[i][j], "o/=\o", 4) == 0) {
+                    strncpy(&board[i][j], "    ", 4); // Clear car
+                }
+            }
+        }
+    }
+}
+
 // Generates board from game data, return 1 if game over, 0 if nothing, 2 if win
 int generateBoard() {
-    // Clear previous positions
-	if (car_column >= COLS-4){
-			return 2;
-		}
-	for (int i = 0; i < ROWS; i++) {
-		for (int j = 0; j < COLS; j++) {
+    // Check for level completion
+    if (car_column >= COLS - 4) {
+        playLevelCompleteSound(); // Play sound on level completion
+        return 2;
+    }
 
-			if (board[i][j] == 'O') {
-				// Move the '-' to the left if possible
-				board[i][j] = ' ';
-				if (j > 2) {
-					board[i][j - 3] = 'O';
-					// Game over
-					if (car_position == i && (car_column == (j - 3)|| car_column + 1 == (j-3) || car_column + 2 == (j-3) || car_column + 3 == (j-3))){
-						return 1;
-					}
-				}
-			} else {
-				// Clear any other characters
-				board[i][j] = ' ';
-			}
-	    }
-	 }
-    // Place the car on the specified row
-    strncpy(&board[car_position][car_column], "o/=\o", 4); // Put the car at column 0
+    // Clear all previous car positions
+    clearCarPosition();
+
+    // Update obstacles
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            if (board[i][j] == 'O') {
+                board[i][j] = ' ';
+                if (j > 2) {
+                    board[i][j - 3] = 'O';
+                    // Check for collision with the car
+                    if (car_position == i &&
+                        (car_column == j - 3 || car_column + 1 == j - 3 || car_column + 2 == j - 3)) {
+                        playGameOverSound(); // Play sound on game over
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+
+    // Place the car in its new position
+    strncpy(&board[car_position][car_column], "o/=\o", 4);
     return 0;
 }
 
 void displayBoard() {
+	printf("\033[2J"); // Clear the terminal screen (ANSI escape code)
+	printf("\033[H");  // Move the cursor to the top-left corner (ANSI escape code)
     // Top border
     printf("+------------------------------------------------------------------------------+\n\r");
     for (int i = 0; i < ROWS; i++) {
@@ -488,12 +583,12 @@ void displayBoard() {
     }
     // Bottom border
     printf("+------------------------------------------------------------------------------+\n\r");
-    printf("\n\r");
-    printf("\n\r");
-    printf("\n\r");
-    printf("\n\r");
-	printf("\n\r");
-	printf("\n\r");
+//    printf("\n\r");
+//    printf("\n\r");
+//    printf("\n\r");
+//    printf("\n\r");
+//	printf("\n\r");
+//	printf("\n\r");
 }
 
 void printGameOver() {
@@ -530,7 +625,81 @@ void printWinner() {
 	printf("\n\r");
 }
 
+void displayMenu()
+{
+    printf("\033[2J"); // Clear the terminal screen (ANSI escape code)
+    printf("\033[H");  // Move the cursor to the top-left corner (ANSI escape code)
+    HAL_Delay(100);
 
+    if (arrow_position == 0) {
+        printf("\n\r");
+        printf(" GGG    A   M   M  EEEEE      M   M  EEEEE  N   N  U   U  \n\r");
+        printf("G      A A  MM MM  E          MM MM  E      NN  N  U   U  \n\r");
+        printf("G  GG AAAAA M M M  EEEE       M M M  EEEE   N N N  U   U  \n\r");
+        printf("G   G A   A M   M  E          M   M  E      N  NN  U   U  \n\r");
+        printf(" GGG  A   A M   M  EEEEE      M   M  EEEEE  N   N  UUUUU  \n\r");
+        printf("\n\r");
+        printf("SELECT A DIFFICULTY:\n\r");
+        printf("EASY     <-- \n\r");
+        printf("MEDIUM\n\r");
+        printf("HARD\n\r");
+    } else if (arrow_position == 1) {
+        printf("\n\r");
+        printf(" GGG    A   M   M  EEEEE      M   M  EEEEE  N   N  U   U  \n\r");
+        printf("G      A A  MM MM  E          MM MM  E      NN  N  U   U  \n\r");
+        printf("G  GG AAAAA M M M  EEEE       M M M  EEEE   N N N  U   U  \n\r");
+        printf("G   G A   A M   M  E          M   M  E      N  NN  U   U  \n\r");
+        printf(" GGG  A   A M   M  EEEEE      M   M  EEEEE  N   N  UUUUU  \n\r");
+        printf("\n\r");
+        printf("SELECT A DIFFICULTY:\n\r");
+        printf("EASY\n\r");
+        printf("MEDIUM   <-- \n\r");
+        printf("HARD\n\r");
+    } else if (arrow_position == 2) {
+        printf("\n\r");
+        printf(" GGG    A   M   M  EEEEE      M   M  EEEEE  N   N  U   U  \n\r");
+        printf("G      A A  MM MM  E          MM MM  E      NN  N  U   U  \n\r");
+        printf("G  GG AAAAA M M M  EEEE       M M M  EEEE   N N N  U   U  \n\r");
+        printf("G   G A   A M   M  E          M   M  E      N  NN  U   U  \n\r");
+        printf(" GGG  A   A M   M  EEEEE      M   M  EEEEE  N   N  UUUUU  \n\r");
+        printf("\n\r");
+        printf("SELECT A DIFFICULTY:\n\r");
+        printf("EASY\n\r");
+        printf("MEDIUM\n\r");
+        printf("HARD     <-- \n\r");
+    }
+}
+
+void beep(int duration_ms) {
+    HAL_DAC_Start(&hdac1, DAC_CHANNEL_1); // Start DAC output
+    for (int i = 0; i < duration_ms; i++) {
+        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 4095); // Max value
+        HAL_Delay(1); // 1ms high
+        HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 0); // Min value
+        HAL_Delay(1); // 1ms low
+    }
+    HAL_DAC_Stop(&hdac1, DAC_CHANNEL_1); // Stop DAC output
+}
+
+void playOutOfBoundsBeep() {
+    beep(100); // Simple short beep
+}
+
+void playGameOverSound() {
+    uint16_t durations[] = {70, 20, 20, 70, 70, 20, 200};
+    for (int i = 0; i < 5; i++) {
+        beep(durations[i]);
+        HAL_Delay(100);
+    }
+}
+
+void playLevelCompleteSound() {
+    uint16_t durations[] = {200, 20, 100, 200, 300};
+    for (int i = 0; i < 5; i++) {
+        beep(durations[i]);
+        HAL_Delay(50);
+    }
+}
 
 /* USER CODE END 4 */
 
@@ -543,27 +712,43 @@ void printWinner() {
 /* USER CODE END Header_StartButtonTask */
 void StartButtonTask(void const * argument)
 {
+  static int prev_arrow_position = -1;  // Keep track of the previous arrow position to avoid redundant prints
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     osDelay(100);
-    button_status = HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin);
-    if (button_status ==0) {
-		if (button_status ==0){
-			if (sensor_number ==0){
-				sensor_number = 1;
-			}
-			else if ( sensor_number ==1 ){
-				sensor_number =2;
-			}
-			else if (sensor_number == 2) {
-				sensor_number = 3;
-			} else {
-				sensor_number =0;
-			}
 
-		}
+    // Update the position of the menu arrow
+    osMutexWait(accelDataMutex, osWaitForever);
+    if (roll > 20.0f && arrow_position < 2) {
+        arrow_position++;
+    }
+    if (roll < -20.0f && arrow_position > 0) {
+        arrow_position--;
+    }
+    osMutexRelease(accelDataMutex);
+
+    // Check if arrow position changed, and update the menu if necessary
+    if (prev_arrow_position != arrow_position) {
+        prev_arrow_position = arrow_position;
+        displayMenu();  // Only update the menu when the arrow moves
+    }
+
+    // Check if the button is pressed
+    button_status = HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin);
+    if (button_status == 0) {
+        HAL_Delay(50);  // Debounce delay
+        if (HAL_GPIO_ReadPin(BTN_GPIO_Port, BTN_Pin) == 0) {  // Confirm button is still pressed
+            difficultyLevel = arrow_position;  // Set the difficulty level
+            car_position = 3;  // Reset the car position
+            car_column = 0;
+            gameStatus = 0;
+            initializeBoard();
+
+            vTaskResume(TerminalTaskHandle);  // Resume the game task
+            vTaskSuspend(ButtonTaskHandle);  // Suspend the menu task
+        }
     }
   }
   /* USER CODE END 5 */
@@ -579,14 +764,19 @@ void StartButtonTask(void const * argument)
 void StartTerminalTask(void const * argument)
 {
   /* USER CODE BEGIN StartTerminalTask */
+	vTaskSuspend(TerminalTaskHandle); // Suspends the game task until it is resumed by the menu task
   /* Infinite loop */
   for(;;)
   {
-    osDelay(300);
+    osDelay(100);
 
-    if (terminalTaskCounter == obstacleGenerationFrequency){
-        	generateObstacles(1);
-        }
+    if (car_position < 0 || car_position >= ROWS) {
+    	playOutOfBoundsBeep(); // Out of bounds beep
+    }
+
+    if (terminalTaskCounter == obstacleGenerationFrequency) {
+        generateObstacles(difficultyLevel);
+    }
 
     if (terminalTaskCounter== movingCounter){
     	car_column = car_column + 5;
@@ -597,7 +787,6 @@ void StartTerminalTask(void const * argument)
     	terminalTaskCounter = terminalTaskCounter - 1;
     }
 
-
     osMutexWait(accelDataMutex, osWaitForever);
     if (roll > 20.0f && car_position <6){
 		car_position = car_position + 1;
@@ -605,39 +794,25 @@ void StartTerminalTask(void const * argument)
 	if (roll < -20.0f && car_position >0){
 		car_position = car_position - 1;
 	}
+	if ((roll < -20.0f && car_position == 0) || (roll > 20.0f && car_position == 6)) {
+		beep(100);
+	}
     osMutexRelease(accelDataMutex);
 
-    //printf("%d\n\r", getRandomNumber0to6());
-
-//    printf("____________________________________________________________________________\n\r");
-//    for (int i=0; i<=6; i++){
-//    	if (i == car_position){
-//    		printf("o/=\o\n\r");
-//    	} else {
-//    		printf("\n\r");
-//    	}
-//
-//    }
-//    printf("____________________________________________________________________________\n\r");
-//    printf("\n\r");
-//    printf("\n\r");
-    int gameStatus = generateBoard();
+    gameStatus = generateBoard();
     if (gameStatus==1){
     	printGameOver();
-    	vTaskSuspend(TerminalTaskHandle); // Suspend the current task (NULL means current task)
+    	vTaskDelay(pdMS_TO_TICKS(3000)); //tasks wait for 3 seconds before going back to menu
+    	vTaskResume(ButtonTaskHandle); // resumes the menu task
+		vTaskSuspend(TerminalTaskHandle); // Suspend the game task (NULL means current task)
     }
     if (gameStatus ==2){
     	printWinner();
-    	vTaskSuspend(TerminalTaskHandle); // Suspend the current task (NULL means current task)
-
+    	vTaskDelay(pdMS_TO_TICKS(3000)); //tasks wait for 3 seconds before going back to menu
+    	vTaskResume(ButtonTaskHandle); // resumes the menu task
+		vTaskSuspend(TerminalTaskHandle); // Suspend the game task (NULL means current task)
     }
     displayBoard();
-//    if (status) {
-//    	displayBoard(); }
-//    } else {
-//    	printGameOver();
-//    	vTaskSuspend(NULL); // Suspend the current task (NULL means current task)
-//    }
 
   }
   /* USER CODE END StartTerminalTask */
@@ -658,7 +833,7 @@ void StartSensorTask(void const * argument)
   {
     osDelay(10);
 
-    BSP_ACCELERO_AccGetXYZ(&xyz_accel);
+    BSP_ACCELERO_AccGetXYZ(xyz_accel);
     int16_t ax = xyz_accel[0];
     int16_t ay = xyz_accel[1];
     int16_t az = xyz_accel[2];

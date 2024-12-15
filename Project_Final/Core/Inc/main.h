@@ -63,6 +63,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BTN_Pin GPIO_PIN_13
 #define BTN_GPIO_Port GPIOC
+#define Speaker_Pin GPIO_PIN_5
+#define Speaker_GPIO_Port GPIOA
 #define LED_Pin GPIO_PIN_14
 #define LED_GPIO_Port GPIOB
 
